@@ -1,0 +1,9 @@
+Split an image into patches.
+
+Usage: prepare a directory of images, say, ``images/input``. Make an output
+directory, say ``images/output``. Then run
+
+    docker run -v "$(pwd)/images:/images" $(docker build -q .) \
+        <height> <width> <hstride> <wstride> /images input/ output/
+
+Images patches will be written to ``images/output``.
