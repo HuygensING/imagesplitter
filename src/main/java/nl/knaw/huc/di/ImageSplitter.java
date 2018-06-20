@@ -4,6 +4,7 @@ import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfInt;
 import org.opencv.core.Scalar;
+import org.opencv.utils.Converters;
 
 import java.io.IOException;
 import java.nio.file.Files;
