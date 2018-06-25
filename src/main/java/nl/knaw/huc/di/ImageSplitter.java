@@ -4,7 +4,6 @@ import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfInt;
 import org.opencv.core.Scalar;
-import org.opencv.utils.Converters;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,6 +31,8 @@ public class ImageSplitter {
     pngParams.put(0, 0, CV_IMWRITE_PNG_COMPRESSION);
     pngParams.put(0, 1, 9);
 
+    Scalar white = new Scalar(255, 255, 255);
+
     Files.walk(Paths.get(indir).resolve(basedir)).filter(Files::isRegularFile).parallel().forEach(f -> {
       Mat img = imread(f.toString());
 
@@ -41,20 +42,21 @@ public class ImageSplitter {
         w = max(width, img.width());
 
         Mat newimg = new Mat(h, w, img.type());
-        newimg.setTo(new Scalar(255, 255, 255)); // all white
+        newimg.setTo(white);
         newimg.submat(0, img.height(), 0, img.width()).setTo(img);
 
         img.release();
         img = newimg;
       }
 
-      for (int i = 0; i <= img.height() - h; i += hstride) {
-        for (int j = 0; j <= img.width() - w; j += wstride) {
-          String outpath = String.format("%s/%s/%s_%d_%d", basedir, outdir, f.getFileName(), i, j);
-          System.out.println(outpath);
-          imwrite(outpath, img.submat(i, i + height, j, j + width), pngParams);
-        }
-      }
+      Mat finalImg = img;
+      Patches.stream(img.width(), img.height(), width, height, wstride, hstride)
+             .forEach(p -> {
+               String outpath = String.format("%s/%s/%s_%d_%d",
+                 basedir, outdir, f.getFileName(), p.rowStart(), p.colStart());
+               System.out.println(outpath);
+               imwrite(outpath, finalImg.submat(p.rowStart(), p.rowEnd(), p.colStart(), p.colEnd()), pngParams);
+             });
     });
   }
 }
